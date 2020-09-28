@@ -228,8 +228,8 @@ fn run() -> Result<ExitStatus> {
             let toml = toml(&root)?;
 
             let mut sysroot = rustc::sysroot(&host, &target, verbose)?;
-            let default_toolchain = sysroot.file_name().and_then(|file_name| file_name.to_str())
-                .ok_or("couldn't get toolchain name")?;
+            let default_toolchain = rustup::default_toolchain(verbose)?;
+            dbg!(&default_toolchain);
             let toolchain = if let Some(channel) = args.channel {
                 [channel].iter().map(|c| c.as_str()).chain(
                     default_toolchain.splitn(2, '-').skip(1)
@@ -237,7 +237,7 @@ fn run() -> Result<ExitStatus> {
                     .collect::<Vec<_>>()
                     .join("-")
             } else {
-                default_toolchain.to_string()
+                default_toolchain
             };
             sysroot.set_file_name(&toolchain);
 
@@ -246,7 +246,7 @@ fn run() -> Result<ExitStatus> {
             if !installed_toolchains.into_iter().any(|t| t == toolchain) {
               rustup::install_toolchain(&toolchain, verbose)?;
             }
-
+            dbg!(&toolchain);
             let available_targets = rustup::available_targets(&toolchain, verbose)?;
             let uses_xargo = if let Some(toml) = toml.as_ref() {
                 toml.xargo(&target)?

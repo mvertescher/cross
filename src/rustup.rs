@@ -23,6 +23,17 @@ impl AvailableTargets {
     }
 }
 
+pub fn default_toolchain(verbose: bool) -> Result<String> {
+    let out = Command::new("rustup")
+        .args(&["show"])
+        .run_and_get_stdout(verbose)?;
+
+    Ok(out.lines().find(|l| l.contains(" (default)"))
+        .ok_or("couldn't get toolchain name")?
+        .replace( " (default)", "")
+        .to_string())
+}
+
 pub fn installed_toolchains(verbose: bool) -> Result<Vec<String>> {
     let out = Command::new("rustup")
         .args(&["toolchain", "list"])
